@@ -18,6 +18,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write  # 关键：GHCR推送必需的身份验证权限
+      actions: read
 
     steps:
       - name: Checkout repository
@@ -39,8 +41,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}  # PR时仅构建不推送，避免权限报错
           tags: |
+            # 直接用用户名变量，无需转换（已全小写）
             ghcr.io/${{ github.repository_owner }}/suidao:latest
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
